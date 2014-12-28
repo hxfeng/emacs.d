@@ -78,10 +78,11 @@ ARCHIVE is the string name of the package archive.")
 (setq package-archives '(("melpa" . "http://melpa.org/packages/")
                          ("melpa-stable" . "http://stable.melpa.org/packages/")
                          ))
-(if (not *emacs24*) (add-to-list 'package-archives '("localelpa" . "~/.emacs.d/localelpa")))
 
 ;; Un-comment below line if you download zip file from https://github.com/redguardtoo/myelpa/archive/master.zip and extract its content into ~/myelpa/
-;; (setq package-archives '(("myelpa" . "~/myelpa")))
+;; (setq package-archives '(("myelpa" . "~/projs/myelpa")))
+
+(if (not *emacs24*) (add-to-list 'package-archives '("localelpa" . "~/.emacs.d/localelpa")))
 
 ;; Or Un-comment below line if you prefer installing package from https://github.com/redguardtoo/myelpa/ directly
 ;; (setq package-archives '(("myelpa" . "https://raw.github.com/redguardtoo/myelpa/master/")))
@@ -112,7 +113,6 @@ ARCHIVE is the string name of the package archive.")
     regex-tool
     csharp-mode
     switch-window
-    cmake-mode
     sr-speedbar
     quack
     iedit
@@ -138,7 +138,6 @@ ARCHIVE is the string name of the package archive.")
     org-fstree
     textile-mode
     pretty-mode
-    auto-complete-clang
     w3m
     fakir
     erlang
@@ -188,9 +187,9 @@ ARCHIVE is the string name of the package archive.")
 (require-package 'yaml-mode)
 (require-package 'paredit)
 (require-package 'erlang '(20120612 0 0) nil)
-(if *emacs24* (require-package 'browse-kill-ring))
 (require-package 'findr)
 (if *emacs24* (require-package 'jump '(2 3 0) nil))
+(require-package 'writeroom-mode)
 (require-package 'haml-mode)
 (require-package 'sass-mode)
 (require-package 'scss-mode)
@@ -213,12 +212,10 @@ ARCHIVE is the string name of the package archive.")
 (require-package 'git-timemachine)
 (require-package 'exec-path-from-shell)
 (require-package 'flymake-css)
-(require-package 'flymake-haml)
 (require-package 'flymake-jslint)
 (require-package 'flymake-python-pyflakes)
 (require-package 'flymake-ruby)
 (require-package 'flymake-sass)
-(require-package 'flymake-shell)
 (require-package 'hl-sexp)
 (require-package 'ibuffer-vc)
 (require-package 'less-css-mode)
@@ -227,10 +224,11 @@ ARCHIVE is the string name of the package archive.")
 (require-package 'page-break-lines)
 (require-package 'pointback)
 (require-package 'regex-tool)
+;; I don't use multiple-cursors, but js2-refactor requires it
+(require-package 'multiple-cursors)
 (require-package 'rinari)
 (require-package 'ruby-compilation)
 (require-package 'csharp-mode)
-(require-package 'cmake-mode)
 (require-package 'emmet-mode)
 (require-package 'session)
 ;; (require-package 'tidy)
@@ -240,8 +238,7 @@ ARCHIVE is the string name of the package archive.")
 (if *emacs24* (require-package 'ggtags))
 (require-package 'buffer-move)
 (require-package 'switch-window)
-(require-package 'maxframe)
-(require-package 'cpputils-cmake '(0 4 17) nil)
+(require-package 'cpputils-cmake '(0 4 22) nil)
 (require-package 'flyspell-lazy)
 (require-package 'bbdb '(20130421 1145 0) nil)
 (require-package 'iedit)

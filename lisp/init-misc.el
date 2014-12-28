@@ -4,7 +4,7 @@
 (setq-default
  blink-cursor-delay 0
  blink-cursor-interval 0.4
- bookmark-default-file "~/.emacs.d/.bookmarks.el"
+ bookmark-default-file "~/.bookmarks.el"
  buffers-menu-max-size 30
  case-fold-search t
  compilation-scroll-output t
@@ -127,9 +127,6 @@
         (sort-subr nil 'forward-line 'end-of-line nil nil
                    (lambda (s1 s2) (eq (random 2) 0)))))))
 
-;need install browse-kill-ring
-(if *emacs24* (browse-kill-ring-default-keybindings))
-
 (add-hook 'prog-mode-hook
           '(lambda ()
              ;; enable for all programming modes
@@ -242,7 +239,7 @@
   "Find all strings matching REGEXP in current buffer.
 grab matched string and insert them into kill-ring"
   (interactive
-   (let* ((regexp (grep-read-regexp)))
+   (let* ((regexp (read-regexp "grep regex:")))
      (list regexp)))
   (let (items rlt)
     (setq items (grep-pattern-into-list regexp))
@@ -253,11 +250,32 @@ grab matched string and insert them into kill-ring"
     (message "matched strings => kill-ring")
     rlt))
 
+(defvar rimenu-position-pair nil "positions before and after imenu jump")
+(add-hook 'imenu-after-jump-hook
+          (lambda ()
+            (let ((start-point (marker-position (car mark-ring)))
+                  (end-point (point)))
+              (setq rimenu-position-pair (list start-point end-point)))))
+
+(defun rimenu-jump ()
+  "jump to the closest before/after position of latest imenu jump"
+  (interactive)
+  (when rimenu-position-pair
+    (let ((p1 (car rimenu-position-pair))
+          (p2 (cadr rimenu-position-pair)))
+
+      ;; jump to the far way point of the rimenu-position-pair
+      (if (< (abs (- (point) p1))
+             (abs (- (point) p2)))
+          (goto-char p2)
+          (goto-char p1))
+      )))
+
 (defun grep-pattern-jsonize-into-kill-ring (regexp)
   "Find all strings matching REGEXP in current buffer.
 grab matched string, jsonize them, and insert into kill ring"
   (interactive
-   (let* ((regexp (grep-read-regexp)))
+   (let* ((regexp (read-regexp "grep regex:")))
      (list regexp)))
   (let (items rlt)
     (setq items (grep-pattern-into-list regexp))
@@ -268,8 +286,28 @@ grab matched string, jsonize them, and insert into kill ring"
     (message "matched strings => json => kill-ring")
     rlt))
 
-; from RobinH
-;Time management
+(defun open-blog-on-current-month ()
+  (interactive)
+  (let (blog)
+   (setq blog (file-truename (concat "~/blog/" (format-time-string "%Y-%m") ".org")) )
+   (find-file blog)))
+
+(defun grep-pattern-cssize-into-kill-ring (regexp)
+  "Find all strings matching REGEXP in current buffer.
+grab matched string, cssize them, and insert into kill ring"
+  (interactive
+   (let* ((regexp (read-regexp "grep regex:")))
+     (list regexp)))
+  (let (items rlt)
+    (setq items (grep-pattern-into-list regexp))
+    (dolist (i items)
+      (setq i (replace-regexp-in-string "\\(class=\\|\"\\)" "" i))
+      (setq rlt (concat rlt (format ".%s {\n}\n\n" i))))
+    (kill-new rlt)
+    (message "matched strings => json => kill-ring")
+    rlt))
+
+;; from RobinH, Time management
 (setq display-time-24hr-format t)
 (setq display-time-day-and-date t)
 (display-time)
@@ -470,18 +508,24 @@ grab matched string, jsonize them, and insert into kill ring"
         (deactivate-mark))
         (message "No region active; can't yank to clipboard!")))
 
+(defun get-str-from-x-clipboard ()
+  (let (s)
+    (cond
+     ((and (display-graphic-p) x-select-enable-clipboard)
+      (setq s (x-selection 'CLIPBOARD)))
+     (t (setq s (shell-command-to-string
+                 (cond
+                  (*cygwin* "getclip")
+                  (*is-a-mac* "pbpaste")
+                  (t "xsel -ob"))))
+        ))
+    s))
+
+
 (defun paste-from-x-clipboard()
+  "Paste string clipboard"
   (interactive)
-  (cond
-   ((and (display-graphic-p) x-select-enable-clipboard)
-    (insert (x-selection 'CLIPBOARD)))
-   (t (shell-command
-       (cond
-        (*cygwin* "getclip")
-        (*is-a-mac* "pbpaste")
-        (t "xsel -ob"))
-       1))
-   ))
+  (insert (get-str-from-x-clipboard)))
 
 (defun my/paste-in-minibuffer ()
   (local-set-key (kbd "M-y") 'paste-from-x-clipboard)
@@ -849,17 +893,16 @@ The full path into relative path insert it as a local file link in org-mode"
   (interactive)
   (let (str
         rlt
-        (file (read-file-name "The path of image:"))
-        )
+        (file (read-file-name "The path of image:")))
     (with-temp-buffer
       (shell-command (concat "cat " file "|base64") 1)
       (setq str (replace-regexp-in-string "\n" "" (buffer-string)))
       )
-    (setq rlt (concat "background:url(data:image/"
+    (setq rlt (concat "background:url(\"data:image/"
                       (car (last (split-string file "\\.")))
                       ";base64,"
                       str
-                      ") no-repeat 0 0;"
+                      "\") no-repeat 0 0;"
                       ))
     (kill-new rlt)
     (copy-yank-str rlt)
@@ -959,8 +1002,6 @@ The full path into relative path insert it as a local file link in org-mode"
 (setq imenu-max-item-length 64)
 ;; }}
 
-(setq color-theme-illegal-faces "^\\(w3-\\|dropdown-\\|info-\\|linum\\|yas-\\|font-lock\\)")
-
 (defun display-line-number ()
   "display current line number in mini-buffer"
   (interactive)
@@ -1021,5 +1062,17 @@ The full path into relative path insert it as a local file link in org-mode"
 ;; {{go-mode
 (require 'go-mode-load)
 ;; }}
+
+;; someone mentioned that blink cursor could slow Emacs24.4
+;; I couldn't care less about cursor, so turn it off explicitly
+;; https://github.com/redguardtoo/emacs.d/issues/208
+(blink-cursor-mode -1)
+
+;; https://github.com/browse-kill-ring/browse-kill-ring
+(require 'browse-kill-ring)
+(browse-kill-ring-default-keybindings)
+
+;; @see http://emacs.stackexchange.com/questions/3322/python-auto-indent-problem/3338#3338
+(if (fboundp 'electric-indent-mode) (electric-indent-mode -1))
 
 (provide 'init-misc)

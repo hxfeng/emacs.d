@@ -94,10 +94,10 @@
   (require 'init-org)
   (require 'init-org-mime))
 (require 'init-css)
-(require 'init-haml)
 (require 'init-python-mode)
 (require 'init-haskell)
 (require 'init-ruby-mode)
+(require 'init-lisp)
 (require 'init-elisp)
 (if *emacs24* (require 'init-yasnippet))
 ;; Use bookmark instead
@@ -129,18 +129,24 @@
 (require 'init-stripe-buffer)
 (require 'init-eim) ;;  cannot be idle-required
 (require 'init-hs-minor-mode)
+;; need statistics of keyfreq asap
+(require 'init-keyfreq)
+
+
+;; misc has some crucial tools I need immediately
+(require 'init-misc)
 
 ;; color theme
 (require 'color-theme)
 (require 'color-theme-molokai)
 (color-theme-molokai)
-;; misc has some crucial tools I need immediately
-(require 'init-misc)
+;; This line must be after color-theme-molokai! Don't know why.
+(setq color-theme-illegal-faces "^\\(w3-\\|dropdown-\\|info-\\|linum\\|yas-\\|font-lock\\)")
+;; (color-theme-select 'color-theme-xp)
+;; (color-theme-xp)
 
 (setq idle-require-idle-delay 3)
 (setq idle-require-symbols '(init-writting
-                             init-lisp
-                             init-keyfreq
                              init-elnode
                              init-doxygen
                              init-pomodoro
@@ -160,13 +166,6 @@
     (time-to-seconds (time-since emacs-load-start-time)))
    )
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(bmkp-last-as-first-bookmark-file "~/.emacs.bmk")
- '(safe-local-variable-values (quote ((emacs-lisp-docstring-fill-column . 75) (ruby-compilation-executable . "ruby") (ruby-compilation-executable . "ruby1.8") (ruby-compilation-executable . "ruby1.9") (ruby-compilation-executable . "rbx") (ruby-compilation-executable . "jruby")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
